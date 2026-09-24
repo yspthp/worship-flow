@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="zh-Hant">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FluidR3 GM SF2 測試</title>
+<style>
+  body{font:16px system-ui,sans-serif;max-width:760px;margin:40px auto;padding:0 20px;color:#26343a}
+  button{padding:10px 16px;margin:8px 4px 8px 0;cursor:pointer}
+  #status{padding:14px;background:#f3f8f6;border-radius:8px;white-space:pre-wrap}
+  .hint{color:#667;font-size:14px;line-height:1.6}
+</style>
+<h1>FluidR3 GM SF2 實際音色測試</h1>
+<p class="hint">這是獨立測試頁，不會修改主播放器。選擇 FluidR3_GM.sf2 後，按測試按鈕；測試會播放鋼琴、弦樂及 MIDI Channel 10 的鼓組。</p>
+<input id="font" type="file" accept=".sf2,.sf3">
+<button id="test" disabled>載入並播放測試</button>
+<button id="stop" disabled>停止</button>
+<div id="status">尚未選擇 SoundFont。</div>
+<script type="module">
+import {SoundBankLoader, SpessaSynthProcessor} from "https://esm.sh/spessasynth_core@4.3.14";
+
+const $ = s => document.querySelector(s);
+let context, synth, processorNode;
+const status = text => $("#status").textContent = text;
+
+$("#font").onchange = () => {
+  const file = $("#font").files[0];
+  $("#test").disabled = !file;
+  status(file ? `已選擇：${file.name}\n大小：${(file.size / 1048576).toFixed(1)} MiB` : "尚未選擇 SoundFont。");
+};
+
+async function startSynth(file) {
+  context ??= new AudioContext({sampleRate: 44100});
+  await context.resume();
+  const buffer = await file.arrayBuffer();
+  synth ??= new SpessaSynthProcessor(44100, {maxBufferSize: 128});
+  synth.soundBankManager.addSoundBank(SoundBankLoader.fromArrayBuffer(buffer), "FluidR3");
+  await synth.processorInitialized;
+  processorNode ??= context.createScriptProcessor(2048, 0, 2);
+  processorNode.onaudioprocess = event => {
+    const left = event.outputBuffer.getChannelData(0);
+    const right = event.outputBuffer.getChannelData(1);
+    for (let offset = 0; offset < left.length; offset += 128) {
+      synth.process(left, right, offset, Math.min(128, left.length - offset));
+    }
+  };
+  processorNode.connect(context.destination);
+}
+
+function midi(message, time) {
+  synth.processMessage(message, 0, {time});
+}
+
+$("#test").onclick = async () => {
+  try {
+    const file = $("#font").files[0];
+    status("正在讀取 141.5 MiB SoundFont…");
+    await startSynth(file);
+    // SpessaSynth schedules against its own synthesis clock, not AudioContext.currentTime.
+    const now = synth.currentTime + .15;
+    // Piano: channel 0, middle C.
+    midi([0x90, 60, 110], now); midi([0x80, 60, 0], now + .8);
+    // Organ/strings preset change then chord: channel 1.
+    midi([0xC1, 48], now); [60,64,67].forEach(n => midi([0x91,n,90], now));
+    [60,64,67].forEach(n => midi([0x81,n,0], now + 1.2));
+    // GM percussion channel 10 (zero-based channel 9): kick, snare, closed hat.
+    [36,42,38,42,36].forEach((n,i) => {
+      const t = now + i * .28;
+      midi([0x99,n,115], t); midi([0x89,n,0], t + .12);
+    });
+    $("#stop").disabled=false;
+    status("已開始：Piano + Organ/Strings + MIDI Channel 10 Drum Kit。\n若聽到真實鼓件，表示 SF2 引擎可用。");
+  } catch (error) {
+    console.error(error);
+    status(`測試失敗：${error.message}`);
+  }
+};
+$("#stop").onclick = () => {
+  synth?.stopAllChannels?.(true);
+  processorNode?.disconnect(); processorNode=null;
+  $("#stop").disabled=true; status("已停止。");
+};
+</script>

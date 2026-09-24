@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Worship Flow · 崇拜司樂協作台</title><link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><div class="brand-mark">♫</div><div><strong>Worship Flow</strong><span>崇拜司樂協作台</span></div></div>
+    <div class="side-title"><span>本次曲目</span><button class="icon-btn" title="新增曲目">＋</button></div>
+    <nav id="setlist"></nav>
+  </aside>
+  <main class="main">
+    <header class="topbar"><h1 id="song-title">輕快敬拜讚美詩歌</h1></header>
+    <section class="vision"><div class="vision-icon">✦</div><div class="vision-copy"><span class="eyebrow">主禮對詩歌的氣氛要求</span><p id="vision-text">維持輕快而有盼望的推進。<b>正歌</b>以鋼琴和電子琴／弦樂輕輕鋪底，讓人聲保留呼吸；進入<b>副歌</b>時全團打開，鼓組加入開闊的 crash，帶領會眾一起釋放喜樂。</p></div></section>
+    <section class="arrangement-live">
+      <div class="live-heading"><div><span class="eyebrow">當前編排 · LIVE ARRANGEMENT</span><h2 id="live-position">等待播放</h2></div><span class="live-measure" id="live-measure">小節 --</span></div>
+      <div class="arrangement-cards" id="arrangement-cards"></div>
+    </section>
+    <section class="mixer"><div class="mixer-title"><span class="eyebrow">聲部管理</span><small>先選擇你要聽見／看見的聲部</small></div><div id="tracks"></div></section>
+    <div class="section-row section-row-top"><div class="section-label"><span class="eyebrow">段落導航</span><small>定位、跳轉、循環練習</small></div><div class="section-buttons" id="section-buttons"></div></div>
+    <section class="workspace">
+      <div class="score-head"><div class="score-meta"><span class="live-dot"></span><span id="score-status">已載入互動樂譜</span><span class="divider"></span><span>Key: F</span><span>4/4</span></div><div class="zoom"><button id="zoom-out">−</button><span id="zoom-label">100%</span><button id="zoom-in">＋</button></div></div>
+      <div class="score-wrap"><div class="score-paper" id="score-paper"><div class="paper-top"><div><h2>祢是君王</h2><p>Worship Arrangement · Piano / Organ &amp; Strings / Drum Kit</p></div><div class="tempo-mark">♩ = <b id="tempo-mark">72</b></div></div><div class="score-grid" id="score-grid"></div><div class="score-footer"><span>Worship Flow · rehearsal copy</span><span>1 / 2</span></div></div></div>
+    </section>
+  </main>
+  <footer class="player"><div class="now-playing"><div class="note-icon">♫</div><div><strong id="player-title">祢是君王</strong><small><span id="player-section">N</span> · <span id="player-lyric">演唱對照</span></small></div></div><div class="transport"><div class="transport-buttons"><button id="rewind">↶</button><button class="play" id="play">▶</button><button id="stop">■</button><button id="forward">↷</button></div><div class="timeline"><span id="current-time">0:00</span><input id="progress" type="range" min="0" max="100" value="0"><span>2:48</span></div><div class="score-position" id="score-position">目前位置：等待播放</div></div><div class="tempo-control"><label>BPM <b id="bpm-value">72</b></label><input id="bpm" type="range" min="54" max="120" value="72"><small class="suggested-bpm">建議 BPM <b id="suggested-bpm">72</b></small><span class="sound">◖</span></div></footer>
+</div><script src="https://cdn.jsdelivr.net/npm/opensheetmusicdisplay@1.9.7/build/opensheetmusicdisplay.min.js"></script><script src="https://cdn.jsdelivr.net/npm/soundfont-player@0.12.0/dist/soundfont-player.min.js"></script><script src="app.js?v=gentle-drum-arrangement-20260924-1"></script>
+</body></html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
