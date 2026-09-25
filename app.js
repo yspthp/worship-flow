@@ -62,7 +62,7 @@ async function loadSoundfont(){
  const soundfontUrl='https://huggingface.co/yspthp/lavender/resolve/main/FluidR3_GM.sf2?download=true';
  sfBuffer??=await fetch(soundfontUrl).then(r=>{if(!r.ok)throw new Error(`FluidR3_GM.sf2 載入失敗 (${r.status})`);return r.arrayBuffer()});
  await resetSynth();
- sfReady=true;usingFallback=false;const overlay=$('#loading-overlay');if(overlay){overlay.hidden=true;overlay.setAttribute('aria-busy','false');}
+ sfReady=true;usingFallback=false;const loadedOverlay=$('#loading-overlay');if(loadedOverlay){loadedOverlay.hidden=true;loadedOverlay.setAttribute('aria-busy','false');}
 }
 async function resetSynth(){if(sfOutput){try{sfOutput.disconnect()}catch{};sfOutput=null}sfSynth=new sfCore.SpessaSynthProcessor(44100,{maxBufferSize:128});sfSynth.soundBankManager.addSoundBank(sfCore.SoundBankLoader.fromArrayBuffer(sfBuffer),'FluidR3');await sfSynth.processorInitialized;sfOutput=audioCtx.createScriptProcessor(2048,0,2);sfOutput.onaudioprocess=event=>{const left=event.outputBuffer.getChannelData(0),right=event.outputBuffer.getChannelData(1);for(let offset=0;offset<left.length;offset+=128)sfSynth.process(left,right,offset,Math.min(128,left.length-offset))};sfOutput.connect(audioCtx.destination);}
 function stopAudio(){scheduled.forEach(n=>{try{n.stop()}catch{}});scheduled=[];if(sfSynth?.stopAllChannels)sfSynth.stopAllChannels(true);}
@@ -94,6 +94,9 @@ $('#play').onclick=async()=>{
  }finally{button.disabled=false}
 };
 $('#stop').onclick=()=>{playing=false;clearInterval(timer);silenceSynth();positionSec=0;syncUi();$('#play').textContent='▶';};$('#rewind').onclick=()=>{positionSec=Math.max(0,positionSec-5);if(playing)playAudio();syncUi()};$('#forward').onclick=()=>{positionSec=Math.min(songSeconds,positionSec+5);if(playing)playAudio();syncUi()};$('#progress').oninput=e=>{positionSec=+e.target.value/100*songSeconds;if(playing)playAudio();syncUi()};$('#bpm').oninput=e=>{const value=Number(e.target.value);$('#bpm-value').textContent=value;$('#tempo-mark').textContent=value;if(!playing)return;positionSec=Math.min(songSeconds,positionSec+(performance.now()-playStartedAt)/1000*playRate);playing=false;clearInterval(timer);silenceSynth();bpmChangePromise=bpmChangePromise.then(async()=>{await playAudio();if(!document.hidden){playing=true;playStartedAt=performance.now();clearInterval(timer);timer=setInterval(tick,100);}}).catch(error=>{$('#score-status').textContent='BPM 更新失敗：'+error.message});};$('#zoom-in').onclick=()=>{zoom=Math.min(120,zoom+10);if(osmd){osmd.zoom=zoom/100;osmd.render()}$('#zoom-label').textContent=zoom+'%'};$('#zoom-out').onclick=()=>{zoom=Math.max(80,zoom-10);if(osmd){osmd.zoom=zoom/100;osmd.render()}$('#zoom-label').textContent=zoom+'%'};renderAll();
+
+
+
 
 
 
