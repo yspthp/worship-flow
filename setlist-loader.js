@@ -1,4 +1,4 @@
-// Worship Flow - 3-Song Setlist Integrator (完整保留 01 祢是君王, 02 不可能的愛，追加 03 建殿者的呼聲)
+// Worship Flow - 3-Song Setlist Integrator (完整支援 01 祢是君王、02 不可能的愛、03 建殿者的呼聲 自由雙向切換)
 (function() {
   const B158_CONFIG = {
     id: 'b158',
@@ -34,53 +34,89 @@
     ]
   };
 
-  let osmdInstance = null;
+  let isB158 = false;
+  let cachedB158Xml = null;
+  let isMutating = false;
 
-  function init() {
+  // 確保側邊欄始終存在第 3 首歌按鈕，且與 app.js 產生的前兩首 (01 祢是君王, 02 不可能的愛) 共存
+  function ensureB158Button() {
     const setlist = document.getElementById('setlist');
     if (!setlist) return;
 
-    if (document.getElementById('set-item-b158')) return;
-
-    // 取得原本 app.js 所產生的項目 (01 祢是君王, 02 不可能的愛)
-    const existingItems = setlist.querySelectorAll('.set-item');
-    
-    // 追加第 3 首歌按鈕
-    const btn = document.createElement('button');
-    btn.className = 'set-item';
-    btn.id = 'set-item-b158';
-    btn.innerHTML = `
-      <span class="set-number">03</span>
-      <div class="set-info">
-        <strong>建殿者的呼聲 (B158)</strong>
-        <small>Key: D · 66 BPM</small>
-      </div>
-    `;
-
-    // 當點選第 1 或 第 2 首歌時，由原本 app.js 處理，取消第 3 首歌高亮
-    existingItems.forEach(item => {
-      item.addEventListener('click', () => {
-        btn.classList.remove('active');
+    let b158Btn = document.getElementById('set-item-b158');
+    if (!b158Btn) {
+      b158Btn = document.createElement('button');
+      b158Btn.className = 'set-item' + (isB158 ? ' active' : '');
+      b158Btn.id = 'set-item-b158';
+      b158Btn.innerHTML = `
+        <span class="set-number">03</span>
+        <div class="set-info">
+          <strong>建殿者的呼聲 (B158)</strong>
+          <small>Key: D · 66 BPM</small>
+        </div>
+      `;
+      b158Btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (isB158) return;
+        switchToB158();
       });
-    });
-
-    // 點選第 3 首歌時，啟用 B158 樂譜與指示
-    btn.addEventListener('click', () => {
-      existingItems.forEach(item => item.classList.remove('active'));
-      btn.classList.add('active');
-      loadB158();
-    });
-
-    setlist.appendChild(btn);
-
-    // 檢查網址參數，若有 ?song=b158 則預設切換至第 3 首歌
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('song') === 'b158') {
-      btn.click();
+      setlist.appendChild(b158Btn);
+    } else {
+      if (isB158) {
+        b158Btn.classList.add('active');
+        setlist.querySelectorAll('.set-item:not(#set-item-b158)').forEach(el => el.classList.remove('active'));
+      } else {
+        b158Btn.classList.remove('active');
+      }
     }
   }
 
-  function loadB158() {
+  // 監聽側邊欄變化，若 app.js 重新渲染 `#setlist`，自動補回第 3 首按鈕，杜絕按鈕消失
+  function watchSetlist() {
+    const setlist = document.getElementById('setlist');
+    if (!setlist) return;
+
+    // 監聽點擊前兩首歌曲的事件（使用 capture 確保在 app.js 前先重置 B158 狀態）
+    setlist.addEventListener('click', (e) => {
+      const targetItem = e.target.closest('.set-item');
+      if (!targetItem) return;
+
+      if (targetItem.id === 'set-item-b158') {
+        return;
+      }
+
+      // 點擊第 1 首或第 2 首歌
+      if (isB158) {
+        isB158 = false;
+        const b158Btn = document.getElementById('set-item-b158');
+        if (b158Btn) b158Btn.classList.remove('active');
+
+        // 停止 B158 播放
+        const stopBtn = document.getElementById('stop');
+        if (stopBtn) stopBtn.click();
+      }
+    }, true);
+
+    const observer = new MutationObserver(() => {
+      if (isMutating) return;
+      isMutating = true;
+      ensureB158Button();
+      isMutating = false;
+    });
+
+    observer.observe(setlist, { childList: true });
+    ensureB158Button();
+  }
+
+  // 切換至第 3 首曲目《建殿者的呼聲 (B158)》
+  async function switchToB158() {
+    isB158 = true;
+    ensureB158Button();
+
+    const stopBtn = document.getElementById('stop');
+    if (stopBtn) stopBtn.click();
+
+    // 1. 更新頁面文字與中繼資料
     const songTitleEl = document.getElementById('song-title');
     if (songTitleEl) songTitleEl.textContent = B158_CONFIG.category;
 
@@ -112,13 +148,14 @@
     if (scoreMeta) {
       scoreMeta.innerHTML = `
         <span class="live-dot"></span>
-        <span id="score-status">載入中…</span>
+        <span id="score-status">載入樂譜中…</span>
         <span class="divider"></span>
         <span>Key: ${B158_CONFIG.key}</span>
         <span>${B158_CONFIG.time}</span>
       `;
     }
 
+    // 2. 更新聲部管理 (Mixer)
     const tracksContainer = document.getElementById('tracks');
     if (tracksContainer) {
       tracksContainer.innerHTML = '';
@@ -141,6 +178,7 @@
       });
     }
 
+    // 3. 生成 15 個段落導航按鈕 (A Intro ~ O Coda 2)
     const sectionBtns = document.getElementById('section-buttons');
     if (sectionBtns) {
       sectionBtns.innerHTML = '';
@@ -158,18 +196,27 @@
       updateSectionDisplay(B158_CONFIG.sections[0]);
     }
 
+    // 4. 透過共用的 OSMD 實例渲染真實 MusicXML（共用同一實例避免容器衝突）
+    await renderB158Score();
+  }
+
+  async function renderB158Score() {
+    const scoreStatus = document.getElementById('score-status');
     const scoreGrid = document.getElementById('score-grid');
-    if (scoreGrid) {
-      scoreGrid.innerHTML = '<div class="xml-loading">正在載入《建殿者的呼聲》三軌編曲樂譜…</div>';
-      
-      fetch(B158_CONFIG.scorePath)
-        .then(r => {
-          if (!r.ok) throw new Error(`HTTP ${r.status}`);
-          return r.text();
-        })
-        .then(xml => {
-          scoreGrid.innerHTML = '';
-          osmdInstance = new opensheetmusicdisplay.OpenSheetMusicDisplay('score-grid', {
+    if (!scoreGrid) return;
+
+    try {
+      if (!cachedB158Xml) {
+        const res = await fetch(B158_CONFIG.scorePath);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        cachedB158Xml = await res.text();
+      }
+
+      let osmd = window.__shared_osmd;
+      if (!osmd) {
+        const Orig = window.__OrigOSMD || (window.opensheetmusicdisplay && window.opensheetmusicdisplay.OpenSheetMusicDisplay);
+        if (Orig) {
+          osmd = new Orig('score-grid', {
             autoResize: true,
             drawTitle: false,
             drawSubtitle: false,
@@ -178,18 +225,18 @@
             drawMetronomeMarks: true,
             backend: 'svg'
           });
-          return osmdInstance.load(xml).then(() => osmdInstance.render());
-        })
-        .then(() => {
-          const st = document.getElementById('score-status');
-          if (st) st.textContent = '已載入互動樂譜 (Key: D · 66 BPM)';
-        })
-        .catch(err => {
-          console.error('OSMD load error:', err);
-          const st = document.getElementById('score-status');
-          if (st) st.textContent = '樂譜載入失敗';
-          scoreGrid.innerHTML = `<div class="xml-loading" style="color:#d9534f">無法載入樂譜檔案：${err.message}</div>`;
-        });
+          window.__shared_osmd = osmd;
+        }
+      }
+
+      if (osmd) {
+        await osmd.load(cachedB158Xml);
+        await osmd.render();
+        if (scoreStatus) scoreStatus.textContent = '已載入互動樂譜 (Key: D · 66 BPM)';
+      }
+    } catch (err) {
+      console.error('B158 OSMD load error:', err);
+      if (scoreStatus) scoreStatus.textContent = '樂譜載入失敗';
     }
   }
 
@@ -232,8 +279,8 @@
   }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => setTimeout(init, 300));
+    document.addEventListener('DOMContentLoaded', () => setTimeout(watchSetlist, 200));
   } else {
-    setTimeout(init, 300);
+    setTimeout(watchSetlist, 200);
   }
 })();
