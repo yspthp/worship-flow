@@ -28,10 +28,10 @@
   .arrangement-cards{grid-template-columns:1fr}
   .section-row{align-items:start;flex-direction:column;gap:12px}
   .score-head{padding:0 12px;height:auto;min-height:44px;flex-wrap:wrap;gap:8px}
-  .score-wrap{padding:12px 6px;overflow-x:auto;-webkit-overflow-scrolling:touch}
-  .score-paper{min-width:100%;width:100%;padding:16px 12px;box-sizing:border-box}
-  .score-grid{width:100%;overflow-x:auto}
-  .score-grid svg{width:100%!important;max-width:100%!important;height:auto!important}
+  .score-wrap{padding:16px 8px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .score-paper{min-width:680px;width:680px;padding:24px 28px;box-sizing:border-box;margin:0 auto}
+  .score-grid{width:100%;overflow:visible}
+  .score-grid svg{width:100%;height:auto}
   .player{height:auto;min-height:82px;padding:8px 16px calc(10px + env(safe-area-inset-bottom,0px));gap:10px}
   .now-playing{display:none}
   .tempo-control{display:none}
