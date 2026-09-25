@@ -8,7 +8,7 @@
 .tempo-control{flex-wrap:wrap}.suggested-bpm{width:100%;font-size:9px;color:#a0acab;text-align:center}.suggested-bpm b{color:#5d706d;font-weight:600}
 
 @media(max-width:650px){
-  .app-shell{flex-direction:column;padding-bottom:120px}
+  .app-shell{flex-direction:column;padding-bottom:140px}
   .sidebar{display:flex;flex-direction:row;align-items:center;width:100%;padding:10px 14px;border-right:none;border-bottom:1px solid var(--line);overflow-x:auto;white-space:nowrap;gap:8px;background:#fff;position:sticky;top:0;z-index:5}
   .sidebar .brand,.sidebar .side-title,.sidebar .sidebar-foot,.sidebar .service-card{display:none}
   #setlist{display:flex;flex-direction:row;gap:8px;width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
@@ -32,9 +32,36 @@
   .score-paper{min-width:680px;width:680px;padding:24px 28px;box-sizing:border-box;margin:0 auto}
   .score-grid{width:100%;overflow:visible}
   .score-grid svg{width:100%;height:auto}
-  .player{height:auto;min-height:82px;padding:8px 16px calc(10px + env(safe-area-inset-bottom,0px));gap:10px}
+  .player{
+    height:auto;
+    min-height:96px;
+    padding:8px 14px calc(10px + env(safe-area-inset-bottom,0px));
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    background:#fff;
+  }
   .now-playing{display:none}
-  .tempo-control{display:none}
-  .transport{max-width:none;width:100%}
-  .transport-buttons{gap:16px}
+  .transport{max-width:none;width:100%;display:flex;flex-direction:column;gap:4px}
+  .transport-buttons{display:flex;justify-content:center;align-items:center;gap:20px}
+  .timeline{display:flex;align-items:center;gap:8px;font-size:10px;margin-top:0}
+  .transport .score-position{display:block;margin:2px auto 0;font-size:9px;padding:2px 8px}
+  .tempo-control{
+    display:flex!important;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    width:100%;
+    margin:2px 0 0;
+    font-size:11px;
+    color:#687875;
+    background:#f6f9f8;
+    border:1px solid #e2ebe7;
+    border-radius:8px;
+    padding:5px 10px;
+  }
+  .tempo-control label{white-space:nowrap;font-size:11px;font-weight:600;color:#3d524e}
+  .tempo-control input{flex:0 1 120px;width:120px;height:4px;accent-color:#ef8e75}
+  .suggested-bpm{font-size:10px;color:#919f9d;width:auto}
+  .sound{display:none}
 }
