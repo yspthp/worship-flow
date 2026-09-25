@@ -124,3 +124,4 @@ $('#stop').onclick=()=>{playing=false;clearInterval(timer);silenceSynth();positi
 
 
 
+
