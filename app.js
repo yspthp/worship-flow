@@ -16,7 +16,7 @@ function renderTracks(){
  document.querySelectorAll('.track button[data-action="mute"]').forEach(b=>b.onclick=async()=>{const i=+b.closest('.track').dataset.part;trackEnabled[i]=!trackEnabled[i];renderTracks();if(playing)await playAudio();});
 }
 async function renderAll(){ $('#song-title').textContent=song.title;$('#player-title').textContent=song.title;$('#vision-text').innerHTML=esc(song.vision).replace('正歌','<b>正歌</b>').replace('副歌','<b>副歌</b>');$('#bpm').value=song.bpm;$('#bpm-value').textContent=song.bpm;$('#suggested-bpm').textContent=song.bpm;$('#tempo-mark').textContent=song.bpm;renderSetlist();renderSections();renderTracks();await renderScore();}
-let audioCtx=null,sfInstruments={},sfReady=false,events=[],lyrics=[],scheduled=[],songSeconds=0,positionSec=0,playStartedAt=0,usingFallback=false,smplrDrums=null,scoreCursorMeasure=1,sfSynth=null,sfOutput=null,sfCore=null,sfBuffer=null;
+let audioCtx=null,sfInstruments={},sfReady=false,events=[],lyrics=[],scheduled=[],songSeconds=0,positionSec=0,playStartedAt=0,usingFallback=false,smplrDrums=null,scoreCursorMeasure=1,sfSynth=null,sfOutput=null,sfCore=null,sfBuffer=null,eventCounts=[0,0,0];
 const PART_INSTRUMENTS=['acoustic_grand_piano','string_ensemble_1'];
 let playRate=1,bpmChangePromise=Promise.resolve();
 const drumMidiByInstrument={'P3-K':36,'P3-S':38,'P3-H':42,'P3-R':51,'P3-C':49};
@@ -48,12 +48,12 @@ async function parseMusic(){
     events.sort((a,b)=>a.sec-b.sec);
    }
   }
-  console.info('MIDI track mapping', [0,1,2].map(part=>events.filter(e=>e.part===part).length));
+  eventCounts=[0,1,2].map(part=>events.filter(e=>e.part===part).length);
   lyrics=[];
   return;
  }const doc=new DOMParser().parseFromString(await activeXmlText(),'application/xml');const parts=[...doc.querySelectorAll('score-partwise > part')];const tempoByMeasure=new Map();doc.querySelectorAll('sound[tempo]').forEach(s=>{const m=s.closest('measure');if(m)tempoByMeasure.set(+m.getAttribute('number'),+s.getAttribute('tempo'))});const qPerMeasure=new Map();let q=0;const first=parts[0];[...first.querySelectorAll(':scope > measure')].forEach(m=>{const no=+m.getAttribute('number');qPerMeasure.set(no,q);const beats=+(m.querySelector(':scope > attributes > time > beats')?.textContent||4),type=+(m.querySelector(':scope > attributes > time > beat-type')?.textContent||4);q+=beats*4/type});const tempos=[...tempoByMeasure.entries()].sort((a,b)=>a[0]-b[0]).map(([measure,bpm])=>({q:qPerMeasure.get(measure)||0,bpm}));if(!tempos.length||tempos[0].q!==0)tempos.unshift({q:0,bpm:song.bpm||72});const secAt=quarter=>{let sec=0;for(let i=0;i<tempos.length;i++){const a=tempos[i],b=tempos[i+1];if(quarter<=a.q)break;const end=b?Math.min(quarter,b.q):quarter;sec+=(end-a.q)*60/a.bpm;if(b&&quarter<=b.q)break}return sec};songSeconds=secAt(q);const total=document.querySelector(".timeline > span:last-child");if(total)total.textContent=Math.floor(songSeconds/60)+":"+String(Math.floor(songSeconds%60)).padStart(2,"0");events=[];parts.forEach((part,pi)=>{[...part.querySelectorAll(':scope > measure')].forEach(m=>{const no=+m.getAttribute('number'),base=qPerMeasure.get(no)||0,div=+(m.querySelector(':scope > attributes > divisions')?.textContent||4);let cursor=0,last=0;[...m.children].forEach(n=>{if(n.localName==='note'){const d=+(n.querySelector(':scope > duration')?.textContent||0)/div;const chord=n.querySelector(':scope > chord');const instrumentId=n.querySelector('instrument')?.getAttribute('id');const midiSpec=[...doc.querySelectorAll('score-part midi-instrument')].find(x=>x.getAttribute('id')===instrumentId);let midi=pi===2?(drumMidiByInstrument[instrumentId]||42):midiFromNote(n);if(Number.isFinite(midi)&&midi!=null&&!n.querySelector('rest'))events.push({q:base+(chord?last:cursor),dur:d||.25,midi,part:pi,measure:no});if(!chord){last=cursor;cursor+=d}}else if(n.localName==='backup')cursor-=+(n.querySelector(':scope > duration')?.textContent||0)/div;else if(n.localName==='forward')cursor+=+(n.querySelector(':scope > duration')?.textContent||0)/div})})});events=events.map(e=>({...e,sec:secAt(e.q),length:Math.max(.05,secAt(e.q+e.dur)-secAt(e.q))})).sort((a,b)=>a.sec-b.sec);const vdoc=new DOMParser().parseFromString(decodeURIComponent(escape(atob(song.vocalB64||activeXmlB64()))),'application/xml');lyrics=[...vdoc.querySelectorAll('part:first-of-type > measure')].map(m=>({measure:+m.getAttribute('number'),text:[...m.querySelectorAll('lyric text')].map(x=>x.textContent).join('')}));}
 async function loadSoundfont(){
- if(sfReady&&sfSynth&&sfOutput)return;
+ if(sfReady&&sfSynth&&sfOutput)return;const overlay=$('#loading-overlay');if(overlay){overlay.hidden=false;$('#loading-title').textContent='正在載入 FluidR3 GM';$('#loading-detail').textContent='首次載入約 141.5 MiB，之後瀏覽器可使用快取。';}
  audioCtx??=new(window.AudioContext||window.webkitAudioContext)();
  await audioCtx.resume();
  await parseMusic();
@@ -62,7 +62,7 @@ async function loadSoundfont(){
  const soundfontUrl='https://huggingface.co/yspthp/lavender/resolve/main/FluidR3_GM.sf2?download=true';
  sfBuffer??=await fetch(soundfontUrl).then(r=>{if(!r.ok)throw new Error(`FluidR3_GM.sf2 載入失敗 (${r.status})`);return r.arrayBuffer()});
  await resetSynth();
- sfReady=true;usingFallback=false;
+ sfReady=true;usingFallback=false;const overlay=$('#loading-overlay');if(overlay){overlay.hidden=true;overlay.setAttribute('aria-busy','false');}
 }
 async function resetSynth(){if(sfOutput){try{sfOutput.disconnect()}catch{};sfOutput=null}sfSynth=new sfCore.SpessaSynthProcessor(44100,{maxBufferSize:128});sfSynth.soundBankManager.addSoundBank(sfCore.SoundBankLoader.fromArrayBuffer(sfBuffer),'FluidR3');await sfSynth.processorInitialized;sfOutput=audioCtx.createScriptProcessor(2048,0,2);sfOutput.onaudioprocess=event=>{const left=event.outputBuffer.getChannelData(0),right=event.outputBuffer.getChannelData(1);for(let offset=0;offset<left.length;offset+=128)sfSynth.process(left,right,offset,Math.min(128,left.length-offset))};sfOutput.connect(audioCtx.destination);}
 function stopAudio(){scheduled.forEach(n=>{try{n.stop()}catch{}});scheduled=[];if(sfSynth?.stopAllChannels)sfSynth.stopAllChannels(true);}
@@ -94,6 +94,9 @@ $('#play').onclick=async()=>{
  }finally{button.disabled=false}
 };
 $('#stop').onclick=()=>{playing=false;clearInterval(timer);silenceSynth();positionSec=0;syncUi();$('#play').textContent='▶';};$('#rewind').onclick=()=>{positionSec=Math.max(0,positionSec-5);if(playing)playAudio();syncUi()};$('#forward').onclick=()=>{positionSec=Math.min(songSeconds,positionSec+5);if(playing)playAudio();syncUi()};$('#progress').oninput=e=>{positionSec=+e.target.value/100*songSeconds;if(playing)playAudio();syncUi()};$('#bpm').oninput=e=>{const value=Number(e.target.value);$('#bpm-value').textContent=value;$('#tempo-mark').textContent=value;if(!playing)return;positionSec=Math.min(songSeconds,positionSec+(performance.now()-playStartedAt)/1000*playRate);playing=false;clearInterval(timer);silenceSynth();bpmChangePromise=bpmChangePromise.then(async()=>{await playAudio();if(!document.hidden){playing=true;playStartedAt=performance.now();clearInterval(timer);timer=setInterval(tick,100);}}).catch(error=>{$('#score-status').textContent='BPM 更新失敗：'+error.message});};$('#zoom-in').onclick=()=>{zoom=Math.min(120,zoom+10);if(osmd){osmd.zoom=zoom/100;osmd.render()}$('#zoom-label').textContent=zoom+'%'};$('#zoom-out').onclick=()=>{zoom=Math.max(80,zoom-10);if(osmd){osmd.zoom=zoom/100;osmd.render()}$('#zoom-label').textContent=zoom+'%'};renderAll();
+
+
+
 
 
 
