@@ -59,8 +59,7 @@ async function loadSoundfont(){
  await parseMusic();
  await buildMeasureInfo();
  sfCore=await import('https://esm.sh/spessasynth_core@4.3.14');
- const soundfontUrl='https://huggingface.co/yspthp/lavender/resolve/main/FluidR3_GM.sf2?download=true';
- sfBuffer??=await fetch(soundfontUrl).then(r=>{if(!r.ok)throw new Error(`FluidR3_GM.sf2 載入失敗 (${r.status})`);return r.arrayBuffer()});
+ const soundfontUrl='https://huggingface.co/tlmdesign/MAI_MidiAI_Music/resolve/main/FluidR3Mono_GM.sf3?download=true'; if(!sfBuffer){let response=null;try{const cache=await caches.open('worship-flow-soundfont-v1');const cached=await cache.match(soundfontUrl);if(cached){response=cached}else{response=await fetch(soundfontUrl);if(response.ok)await cache.put(soundfontUrl,response.clone())}}catch{response=await fetch(soundfontUrl)}if(!response.ok)throw new Error('FluidR3Mono_GM.sf3 載入失敗 ('+response.status+')');sfBuffer=await response.arrayBuffer();}
  await resetSynth();
  sfReady=true;usingFallback=false;const loadedOverlay=$('#loading-overlay');if(loadedOverlay){loadedOverlay.hidden=true;loadedOverlay.setAttribute('aria-busy','false');}
 }
@@ -94,6 +93,7 @@ $('#play').onclick=async()=>{
  }finally{button.disabled=false}
 };
 $('#stop').onclick=()=>{playing=false;clearInterval(timer);silenceSynth();positionSec=0;syncUi();$('#play').textContent='▶';};$('#rewind').onclick=()=>{positionSec=Math.max(0,positionSec-5);if(playing)playAudio();syncUi()};$('#forward').onclick=()=>{positionSec=Math.min(songSeconds,positionSec+5);if(playing)playAudio();syncUi()};$('#progress').oninput=e=>{positionSec=+e.target.value/100*songSeconds;if(playing)playAudio();syncUi()};$('#bpm').oninput=e=>{const value=Number(e.target.value);$('#bpm-value').textContent=value;$('#tempo-mark').textContent=value;if(!playing)return;positionSec=Math.min(songSeconds,positionSec+(performance.now()-playStartedAt)/1000*playRate);playing=false;clearInterval(timer);silenceSynth();bpmChangePromise=bpmChangePromise.then(async()=>{await playAudio();if(!document.hidden){playing=true;playStartedAt=performance.now();clearInterval(timer);timer=setInterval(tick,100);}}).catch(error=>{$('#score-status').textContent='BPM 更新失敗：'+error.message});};$('#zoom-in').onclick=()=>{zoom=Math.min(120,zoom+10);if(osmd){osmd.zoom=zoom/100;osmd.render()}$('#zoom-label').textContent=zoom+'%'};$('#zoom-out').onclick=()=>{zoom=Math.max(80,zoom-10);if(osmd){osmd.zoom=zoom/100;osmd.render()}$('#zoom-label').textContent=zoom+'%'};renderAll();
+
 
 
 
