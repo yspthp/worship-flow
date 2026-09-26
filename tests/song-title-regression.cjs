@@ -38,10 +38,7 @@ vm.runInContext(fs.readFileSync(path.join(root, 'app.js'), 'utf8'), context);
   for (const song of [...songs.slice(1), songs[0], songs[2], songs[1]]) {
     await songButtons.find((button) => button.dataset.song === song.id).onclick();
     assertTitles(song.title);
-    if (song.id !== 'building-call') {
-      assert.equal(document.querySelector('#leader-cue').hidden, true);
-      assert.equal(document.querySelector('#playback-notes').hidden, true);
-    }
+    assert.ok(!/新版|MusicXML|BPM|141/.test(document.querySelector('#vision-text').innerHTML));
   }
   // Titles must use textContent, so markup in a song name stays literal text.
   vm.runInContext("song = {...song, title: '<b>測試 & 樂譜</b>'};", context);

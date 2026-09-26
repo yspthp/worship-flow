@@ -55,8 +55,12 @@ const run = source => vm.runInContext(source, context);
   assert.equal(document.querySelector('#paper-song-title').textContent, '建殿者的呼聲');
   assert.equal(document.querySelector('#score-key').textContent, 'Key: G');
   assert.ok(document.querySelector('#paper-song-desc').textContent.includes('141 小節'));
-  assert.equal(document.querySelector('#playback-notes').textContent, data.playbackNotes);
-  assert.equal(document.querySelector('#playback-notes').hidden, false);
+  const vision=document.querySelector('#vision-text').innerHTML;
+  assert.ok(vision.includes('安靜聆聽') && vision.includes('同心委身'));
+  assert.ok(!/新版|MusicXML|BPM|141|66/.test(vision));
+  for (const file of ['index.html','app.js','score-data.js']) {
+    assert.ok(!/leader-cue|playback-notes/.test(fs.readFileSync(path.join(root,file),'utf8')),file);
+  }
   assert.equal(document.querySelector('.timeline > span:last-child').textContent, '8:32');
   await run('parseMusic();');
   assert.equal(run('events.length'), data.events.length);
@@ -72,11 +76,6 @@ const run = source => vm.runInContext(source, context);
     for (const part of ['piano', 'organ']) {
       assert.ok(document.querySelector('#arrangement-cards').innerHTML.includes(data.measureInfo[measure.number][part]));
     }
-    assert.equal(document.querySelector('#leader-cue').hidden, false);
-    assert.equal(document.querySelector('#leader-cue').textContent, data.measureInfo[measure.number].leader);
-    assert.ok(data.measureInfo[measure.number].leader.includes('非原譜力度記號'));
-    const next = data.sections[data.sections.indexOf(section) + 1];
-    assert.ok(data.measureInfo[measure.number].leader.includes(next ? `第 ${next[1]} 小節開始` : '第 141 小節結束'));
     assert.ok(Number.isFinite(document.querySelector('#progress').value));
   }
   for (let i=0; i<data.sections.length; i++) {
@@ -99,6 +98,8 @@ const run = source => vm.runInContext(source, context);
   assert.equal(noteOns.length, data.events.length);
   assert.equal(noteOffs.length, data.events.length);
   assert.deepEqual(context.messages.slice(0,3).map(m => [...m.message]), [[0xc0,0],[0xc1,50],[0xc9,0]]);
+  assert.deepEqual(context.messages.filter(m=>m.message[1]===7).map(m=>[...m.message]).filter(m=>(m[0]&0xf0)===0xb0),
+    [[0xb0,7,127],[0xb1,7,101],[0xb9,7,90]],'only strings channel volume increases');
   data.events.forEach((event,i) => {
     assert.equal(noteOns[i].message[0], 0x90 | (event.part===2?9:event.part));
     assert.equal(noteOns[i].message[1], event.midi);
