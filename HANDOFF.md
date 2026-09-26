@@ -80,3 +80,12 @@ SHA-256：3e70ed5925ae23d623334d946634b9d3640be16cc279d50d4938cb9c3561af70
 - 所有生成一致性、獨立逐音、播放排程、切歌、JS 語法與 git diff --check 均通過；沒有使用圖片／截圖。
 - 本次變更：app.js、index.html、score-data.js、style.css、tests/building-call-regression.cjs、tests/song-title-regression.cjs、HANDOFF.md。
 - 下一步：使用者確認後合併 main 觸發既有 Pages 自動部署，並進行純文字線上檢查及人工弦樂平衡試聽；目前正式網站仍為前次 main。
+## 2026-09-26 — 副歌參考備註（完成）
+- 按使用者原文，在《建殿者的呼聲》「主禮對詩歌的氣氛要求」底部留一空行後逐行加入：
+  - 1st與2nd副：到「和平的君…以馬內利*1」
+  - 3rd副：到「神為我們行了大事」
+  - 4th副：跟譜完成Coda (重覆1+2)
+- 備註經 HTML escaping 渲染；切到另外兩首歌不顯示。不改原譜、播放或反覆結構。
+- 變更：app.js、index.html（快取版本）、tests/song-title-regression.cjs、HANDOFF.md。
+- 全部既有生成／來源／播放／切歌回歸與 JS 語法測試通過，新增原文字序、底部位置與切歌隔離驗證。
+- 仍在 codex/refine-worship-atmosphere 提交推送；本次與上一批氣氛／音量調整均尚未合併 main 或部署。

@@ -39,6 +39,13 @@ vm.runInContext(fs.readFileSync(path.join(root, 'app.js'), 'utf8'), context);
     await songButtons.find((button) => button.dataset.song === song.id).onclick();
     assertTitles(song.title);
     assert.ok(!/新版|MusicXML|BPM|141/.test(document.querySelector('#vision-text').innerHTML));
+    const notes=['1st與2nd副：到「和平的君…以馬內利*1」','3rd副：到「神為我們行了大事」','4th副：跟譜完成Coda (重覆1+2)'];
+    const vision=document.querySelector('#vision-text').innerHTML;
+    if(song.id==='building-call'){
+      assert.ok(vision.endsWith('<br><br>'+notes.join('<br>')),'reference notes appear verbatim below the atmosphere copy');
+    }else{
+      for(const note of notes)assert.ok(!vision.includes(note),'notes must not leak into other songs');
+    }
   }
   // Titles must use textContent, so markup in a song name stays literal text.
   vm.runInContext("song = {...song, title: '<b>測試 & 樂譜</b>'};", context);
