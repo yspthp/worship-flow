@@ -106,3 +106,11 @@ SHA-256：3e70ed5925ae23d623334d946634b9d3640be16cc279d50d4938cb9c3561af70
 - 新增跨歌曲與重複播放測試，確認音量不外溢亦不累加；全部編譯一致性、來源逐音、播放、切歌及 JS 語法檢查通過。
 - 變更：app.js、index.html（快取版本）、tests/building-call-regression.cjs、HANDOFF.md；XML／JSON 未改。
 - 下一步：使用者授權發佈後 fast-forward 合併 main、push 觸發 Pages，純文字核對線上新版。
+
+## 2026-09-26 — 鼓音量正式發佈授權
+- 使用者已授權正式發佈 commit 21aa8e7 的鼓音量調整。
+- 發佈前 main：2e2eb0e37a3b19b103b38f3f7af5e18d6679aac7。
+- 已重新通過全部編譯一致性、來源逐音、播放／切歌回歸與 JS 語法檢查。
+- 本次更新交接後提交，推送來源分支，再 fast-forward 合併並推送 main，由既有 Pages 自動發佈；不查 Pages API，不執行額外部署腳本。
+- 推送後等待兩分鐘，以純文字核對 app.js?v=drums-20260926-1 與 building-call 鼓 CC7=99／其他歌曲=90；線上檢查結果以本次執行紀錄為準。
+- 前次提交前檢查因本檔結尾空行停止；已移除多餘空行，使用者授權修復並重新發佈，全部測試重新通過。
