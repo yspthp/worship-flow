@@ -54,3 +54,13 @@ C:/Users/cleme/Documents/Codex/2026-09-26/musicxml-musicxml-partwise-opensheetmu
 - 提交前通過：編譯 --check、Python 來源測試、兩項 Node 回歸測試、兩個 JS 語法檢查、git diff --check。
 - 本次變更：.gitattributes、tools/compile_building_call.py、tests/building-call-source-regression.py、HANDOFF.md；XML/JSON 已重建但與既有追蹤內容一致。
 - 下一步 M3：補齊司樂提示的段落銜接與來源／建議區分，驗證播放資料與實際排程；靜態網站沒有 package.json，不需套件 build，編譯器即資料 build。
+
+## M3 — 司樂提示（完成）
+- M2 已推送：3421c12d55af1c89cab88e0ad7c39beaa7da69c7。
+- 141 小節均新增司樂排練建議，按 14 段落提示下一段入點與全曲收音；明確標示不是原譜力度記號，不暗中改變音符、速度或力度。
+- 顯示播放來源／固定力度／鼓件映射說明，切換其他歌曲時隱藏本曲專用提示；小節總數改從生成資料顯示。
+- 已唯讀核对來源工作目錄的 build_musicxml.py 與 musicxml_to_midi.py：原轉換器未涵蓋 D5/F5，會回退為 Hi-hat；目前編譯器依產生器語意正確對應邊擊／小鼓，不沿用錯誤後備行為。
+- 已重新生成 JSON，更新前端版本標記；逐音來源測試確認音符資料未被提示改動。
+- 全部來源／生成重現／Node 回歸、JS 語法及 diff 檢查通過；新增逐小節三聲部提示、司樂銜接及跨歌曲隱藏測試。
+- 變更：app.js、score-data.js、index.html、style.css、tools/compile_building_call.py、public/scores/building-call-66bpm-20260926.json、tests/building-call-regression.cjs、tests/song-title-regression.cjs、HANDOFF.md。
+- 下一步 M4：補驗新播放資料的 note-off、跳轉與變速；已在程式碼檢查發現暫停時計時漏乘速度，以及跳轉會略過仍在延音的音符，需修正並回歸。

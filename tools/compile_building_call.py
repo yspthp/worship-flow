@@ -117,13 +117,32 @@ def compile_score(check=False):
                 elif 42 in {e['midi'] for e in measure_events}:
                     info['drums'] += '保持八分音符 Hi-hat，按譜面配合重拍。'
     events.sort(key=lambda e: (e['sec'], e['part'], e['midi']))
+    # These are rehearsal suggestions, not dynamics encoded in the source.
+    for index, (label, start, end) in enumerate(sections):
+        if 'Intro' in label:
+            suggestion = '先給清楚預備拍，讓鋼琴與弦樂建立空間。'
+        elif 'Instrumental' in label:
+            suggestion = '以器樂銜接，提示人聲下一次進入，勿提早催拍。'
+        elif 'Pre-Chorus' in label:
+            suggestion = '維持穩定拍點，留意鼓組入點，預備下一段銜接。'
+        elif 'Chorus' in label:
+            suggestion = '提示旋律與和聲平衡，保持拍點，不自行加快或加鼓件。'
+        elif 'Coda' in label:
+            suggestion = '提示全團準備收束；依譜面時值演奏，不自行加入漸慢。'
+        else:
+            suggestion = '讓歌詞與旋律清楚，鋼琴與弦樂留出人聲空間。'
+        for number in range(start, end + 1):
+            next_section = sections[index + 1] if index + 1 < len(sections) else None
+            cue = (f'下一段 {next_section[0]} 從第 {next_section[1]} 小節開始。'
+                   if next_section else f'全曲於第 {end} 小節結束，依最後音符時值一起收音。')
+            measure_info[str(number)]['leader'] = f'司樂建議（非原譜力度記號）：{suggestion}{cue}'
     result = {'source': SOURCE.name, 'sourceSha256': hashlib.sha256(SOURCE.read_bytes()).hexdigest(),
               'title': root.findtext('work/work-title'), 'bpm': bpm, 'key': 'G', 'timeSignature': '4/4',
               'measureCount': len(measures), 'songSeconds': quarter * seconds_per_quarter,
               'sections': sections, 'measures': measures, 'programs': programs,
               'eventCounts': [sum(e['part'] == p for e in events) for p in range(3)],
               'events': events, 'measureInfo': measure_info, 'lyrics': [],
-              'playbackNotes': 'MusicXML 無力度記號，採來源 MIDI 轉換器固定力度 88/72/78；鼓件依來源產生器的視覺位置對應。'}
+              'playbackNotes': '播放依新版 MusicXML 音符與時值；原譜無力度記號，採固定力度 88/72/78。鼓件依來源產生器對應：F4=Hi-hat、G5=Ride、C5=大鼓、D5=邊擊、E5/F5=小鼓；不沿用舊 MIDI 轉換器將未知鼓件一律映射為 Hi-hat 的後備行為。司樂建議不會自動改變播放力度或速度。'}
     assert root.findtext('part/measure/attributes/key/fifths') == '1'
     serialized = (json.dumps(result, ensure_ascii=False, separators=(',', ':')) + '\n').encode('utf-8')
     if check:

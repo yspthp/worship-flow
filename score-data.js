@@ -51,5 +51,9 @@ function renderScoreDataArrangement(measure) {
   const cards = [['♬','鋼琴',info.piano], ['◉','弦樂 Pad',info.organ], ['♩','爵士鼓',info.drums]];
   $('#live-position').textContent = section[0];
   $('#live-measure').textContent = `小節 ${measure}`;
+  $('#leader-cue').hidden = false;
+  $('#leader-cue').textContent = info.leader || '司樂建議：按譜面提示入點與收音。';
+  $('#playback-notes').hidden = false;
+  $('#playback-notes').textContent = song.scoreData.playbackNotes;
   $('#arrangement-cards').innerHTML = cards.map((c,i) => `<article class="arrangement-card ${trackEnabled[i]?'active':''}"><h3>${c[0]} ${c[1]}</h3><p>${esc(c[2] || '按新版譜面演奏。')}</p></article>`).join('');
 }

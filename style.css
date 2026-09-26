@@ -66,3 +66,5 @@
   .suggested-bpm{font-size:10px;color:#919f9d;width:auto}
   .sound{display:none}
 }
+.leader-cue{font-size:13px;line-height:1.7;color:#257d65;margin:14px 0 0}
+.playback-notes{font-size:11px;line-height:1.6;color:#71807f;margin:8px 0 0}

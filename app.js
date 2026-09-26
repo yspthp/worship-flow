@@ -31,6 +31,7 @@ function renderTracks(){
 }
 async function renderAll(){
  const selectedSong=song;
+ $('#leader-cue').hidden=true;$('#playback-notes').hidden=true;
  $('#song-title').textContent=song.title;$('#player-title').textContent=song.title;$('#paper-song-title').textContent=song.title;
  $('#vision-text').innerHTML=esc(song.vision).replace('正歌','<b>正歌</b>').replace('副歌','<b>副歌</b>');
  $('#play').disabled=true;
@@ -39,7 +40,7 @@ async function renderAll(){
   if(selectedSong.scoreDataPath){const data=await loadScoreData(selectedSong);if(song!==selectedSong)return;applyScoreData(data);}
   $('#bpm').value=song.bpm;$('#bpm-value').textContent=song.bpm;$('#suggested-bpm').textContent=song.bpm;$('#tempo-mark').textContent=song.bpm;
   $('#score-key').textContent='Key: '+song.key;
-  $('#paper-song-desc').textContent=song.scoreDataPath?'MusicXML · 鋼琴 / 弦樂 Pad / 爵士鼓 · 141 小節':'Worship Arrangement · Piano / Organ & Strings / Drum Kit';
+  $('#paper-song-desc').textContent=song.scoreDataPath?`MusicXML · 鋼琴 / 弦樂 Pad / 爵士鼓 · ${song.measureCount} 小節`:'Worship Arrangement · Piano / Organ & Strings / Drum Kit';
   renderSections();renderTracks();
   lastRenderedMeasure=0;lastRenderedSection=-1;syncUi();
   await renderScore();

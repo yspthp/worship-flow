@@ -53,6 +53,9 @@ const run = source => vm.runInContext(source, context);
   assert.equal(errors.length, 0);
   assert.equal(document.querySelector('#paper-song-title').textContent, '建殿者的呼聲');
   assert.equal(document.querySelector('#score-key').textContent, 'Key: G');
+  assert.ok(document.querySelector('#paper-song-desc').textContent.includes('141 小節'));
+  assert.equal(document.querySelector('#playback-notes').textContent, data.playbackNotes);
+  assert.equal(document.querySelector('#playback-notes').hidden, false);
   assert.equal(document.querySelector('.timeline > span:last-child').textContent, '8:32');
   await run('parseMusic();');
   assert.equal(run('events.length'), data.events.length);
@@ -65,6 +68,14 @@ const run = source => vm.runInContext(source, context);
     assert.equal(document.querySelector('#player-section').textContent, section[0]);
     assert.equal(document.querySelector('#live-measure').textContent, `小節 ${measure.number}`);
     assert.ok(document.querySelector('#arrangement-cards').innerHTML.includes(data.measureInfo[measure.number].drums));
+    for (const part of ['piano', 'organ']) {
+      assert.ok(document.querySelector('#arrangement-cards').innerHTML.includes(data.measureInfo[measure.number][part]));
+    }
+    assert.equal(document.querySelector('#leader-cue').hidden, false);
+    assert.equal(document.querySelector('#leader-cue').textContent, data.measureInfo[measure.number].leader);
+    assert.ok(data.measureInfo[measure.number].leader.includes('非原譜力度記號'));
+    const next = data.sections[data.sections.indexOf(section) + 1];
+    assert.ok(data.measureInfo[measure.number].leader.includes(next ? `第 ${next[1]} 小節開始` : '第 141 小節結束'));
     assert.ok(Number.isFinite(document.querySelector('#progress').value));
   }
   for (let i=0; i<data.sections.length; i++) {
@@ -73,6 +84,7 @@ const run = source => vm.runInContext(source, context);
   }
   run('positionSec=songSeconds;syncUi();');
   assert.equal(run('currentMeasureNumber()'), 141);
+  assert.equal(data.measureInfo['141'].drums, '本小節休息。');
   run('songSeconds=0;positionSec=0;syncUi();');
   assert.equal(document.querySelector('#progress').value, 0);
   await run('parseMusic()');
