@@ -17,8 +17,10 @@ const document = {
     return songButtons;
   }
 };
-const context = vm.createContext({ document, window: {}, console, setInterval, clearInterval, performance });
 const root = path.resolve(__dirname, '..');
+const fetch = async (url) => ({ok: true, json: async () => JSON.parse(fs.readFileSync(path.join(root, url), 'utf8'))});
+const context = vm.createContext({ document, window: {}, console, setInterval, clearInterval, performance, fetch });
+vm.runInContext(fs.readFileSync(path.join(root, 'score-data.js'), 'utf8'), context);
 vm.runInContext(fs.readFileSync(path.join(root, 'app.js'), 'utf8'), context);
 
 (async () => {
