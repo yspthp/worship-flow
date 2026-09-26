@@ -99,7 +99,7 @@ const run = source => vm.runInContext(source, context);
   assert.equal(noteOffs.length, data.events.length);
   assert.deepEqual(context.messages.slice(0,3).map(m => [...m.message]), [[0xc0,0],[0xc1,50],[0xc9,0]]);
   assert.deepEqual(context.messages.filter(m=>m.message[1]===7).map(m=>[...m.message]).filter(m=>(m[0]&0xf0)===0xb0),
-    [[0xb0,7,127],[0xb1,7,101],[0xb9,7,90]],'only strings channel volume increases');
+    [[0xb0,7,127],[0xb1,7,101],[0xb9,7,99]],'building-call drums increase 10%; piano and strings stay unchanged');
   data.events.forEach((event,i) => {
     assert.equal(noteOns[i].message[0], 0x90 | (event.part===2?9:event.part));
     assert.equal(noteOns[i].message[1], event.midi);
@@ -154,6 +154,16 @@ const run = source => vm.runInContext(source, context);
   document.querySelector('#stop').onclick();
   assert.equal(run('positionSec'),0);
   assert.equal(document.querySelector('#live-measure').textContent,'小節 1');
+  // The drum boost must not leak into the other songs or accumulate on replay.
+  for (const id of ['king','impossible-love','building-call','building-call']) {
+    context.messages.length=0;
+    run(`song=songs.find(s=>s.id==='${id}');`);
+    document.querySelector('#bpm').value=run('song.bpm');
+    await run('playAudio()');
+    const volumes=context.messages.filter(m=>(m.message[0]&0xf0)===0xb0&&m.message[1]===7);
+    assert.deepEqual(volumes.map(m=>[...m.message]),
+      [[0xb0,7,127],[0xb1,7,101],[0xb9,7,id==='building-call'?99:90]]);
+  }
   assert.equal(errors.length,0);
   console.log('PASS: source hash; 3834 note-on/off pairs; 141 measures; 14 sections; guidance; channels; all track mutes; tempo; seek/sustain; pause/stop.');
 })().catch(error => {console.error(error);process.exitCode=1;});

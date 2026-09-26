@@ -98,3 +98,11 @@ SHA-256：3e70ed5925ae23d623334d946634b9d3640be16cc279d50d4938cb9c3561af70
 - 更新本交接紀錄後提交、推送來源分支，再 fast-forward 合併 main 並推送；不 force push、不查詢 Pages API、沒有額外 deploy remote 或部署腳本。
 - 推送後等待兩分鐘，純文字抓取首頁與 JS，核對三行備註、氣氛要求、提示移除及弦樂 CC7=101；若仍舊版，僅等兩分鐘再查一次。
 - 下次接手先以 git log／remote main 與線上資源核對結果，勿將本段發佈流程紀錄當作線上驗證已成功。
+
+## 2026-09-26 — 《建殿者的呼聲》鼓音量 +10%（目前進度）
+- 前次正式發佈已確認成功：main 2e2eb0e37a3b19b103b38f3f7af5e18d6679aac7，線上 HTTP 200，氣氛／三行副歌備註／弦樂音量皆通過文字檢查。
+- 本次分支：codex/building-call-drum-volume；尚未合併 main 或正式發佈。
+- 僅 building-call 的鼓 MIDI CC7 從 90 提高至 99（控制值 +10%），其他兩首維持 90；鋼琴 127、弦樂 101、鼓 expression 95 及音符 velocity 均不變。實際聽感音量需人工試聽。
+- 新增跨歌曲與重複播放測試，確認音量不外溢亦不累加；全部編譯一致性、來源逐音、播放、切歌及 JS 語法檢查通過。
+- 變更：app.js、index.html（快取版本）、tests/building-call-regression.cjs、HANDOFF.md；XML／JSON 未改。
+- 下一步：使用者授權發佈後 fast-forward 合併 main、push 觸發 Pages，純文字核對線上新版。

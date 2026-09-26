@@ -113,7 +113,8 @@ async function playAudio(){
  sfSynth.processMessage([0xB0,7,127],0,{time:now});sfSynth.processMessage([0xB0,11,127],0,{time:now});
  // Raise the shared keyboard/strings channel volume by ~10% (92 -> 101).
  sfSynth.processMessage([0xB1,7,101],0,{time:now});sfSynth.processMessage([0xB1,11,100],0,{time:now});
- sfSynth.processMessage([0xB9,7,90],0,{time:now});sfSynth.processMessage([0xB9,11,95],0,{time:now});
+ const drumVolume=song.id==='building-call'?99:90; // +10% for this song only.
+ sfSynth.processMessage([0xB9,7,drumVolume],0,{time:now});sfSynth.processMessage([0xB9,11,95],0,{time:now});
  // Restore pitched sustains after seeking/resuming, but never replay a past
  // drum attack. Note-offs retain the source ending, not a new full duration.
  events.filter(e=>(e.sec>=offset||(e.part!==2&&e.sec+e.length>offset))&&trackEnabled[e.part]&&(e.part!==2||drumArrangementAllowed(e))).forEach(e=>{
