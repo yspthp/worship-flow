@@ -41,3 +41,16 @@ C:/Users/cleme/Documents/Codex/2026-09-26/musicxml-musicxml-partwise-opensheetmu
 ## M1 提交前驗證
 - 兩項現有回歸測試均通過：building-call-regression.cjs、song-title-regression.cjs。
 - 本次 commit 後立即推送獨立分支；推送是否成功以命令結果與 upstream 為準。
+
+## M2 — 附件來源與可重現編譯（完成）
+- M1 已成功推送：8e65654ad2eb1b73b832385148b39fb34fd79377，origin/codex/update-building-call；main 未改動。
+- 已從使用者附件重新複製 MusicXML 並執行編譯；來源本來已相同，重建 JSON 語意亦相同，沒有偽造音符差異。
+- 附件 SHA-256：3e70ed5925ae23d623334d946634b9d3640be16cc279d50d4938cb9c3561af70。
+- 確認 141 小節、66 BPM、G 調、4/4、14 段落、512.727272727 秒、聲部音符數 1656／546／1632。
+- 新增 .gitattributes：原 XML 禁止換行轉換；生成 JSON 固定 LF。
+- 編譯器新增 --check 唯讀重現檢查，輸出固定 UTF-8/LF。
+- 新增 Python 獨立來源回歸測試：固定附件雜湊、逐音音高／起點／時值／譜表比對，共 3834 音符與 423 個聲部小節。
+- 首輪新增測試發現鼓組休息小節是空 measure，已依附件正確處理（未改 XML）。
+- 提交前通過：編譯 --check、Python 來源測試、兩項 Node 回歸測試、兩個 JS 語法檢查、git diff --check。
+- 本次變更：.gitattributes、tools/compile_building_call.py、tests/building-call-source-regression.py、HANDOFF.md；XML/JSON 已重建但與既有追蹤內容一致。
+- 下一步 M3：補齊司樂提示的段落銜接與來源／建議區分，驗證播放資料與實際排程；靜態網站沒有 package.json，不需套件 build，編譯器即資料 build。

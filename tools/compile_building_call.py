@@ -2,6 +2,7 @@
 Run: python tools/compile_building_call.py
 The original MusicXML stays byte-for-byte unchanged for OSMD rendering.
 """
+import argparse
 import hashlib
 import json
 from pathlib import Path
@@ -29,7 +30,7 @@ def chord_name(h):
         name += '/' + h.findtext('bass/bass-step') + accidental(h.findtext('bass/bass-alter', '0'))
     return name
 
-def compile_score():
+def compile_score(check=False):
     root = ET.fromstring(SOURCE.read_bytes())
     parts = root.findall('part')
     assert len(parts) == 3
@@ -124,9 +125,16 @@ def compile_score():
               'events': events, 'measureInfo': measure_info, 'lyrics': [],
               'playbackNotes': 'MusicXML 無力度記號，採來源 MIDI 轉換器固定力度 88/72/78；鼓件依來源產生器的視覺位置對應。'}
     assert root.findtext('part/measure/attributes/key/fifths') == '1'
-    OUTPUT.write_text(json.dumps(result, ensure_ascii=False, separators=(',', ':')) + '\n', encoding='utf-8')
+    serialized = (json.dumps(result, ensure_ascii=False, separators=(',', ':')) + '\n').encode('utf-8')
+    if check:
+        if not OUTPUT.exists() or OUTPUT.read_bytes() != serialized:
+            raise SystemExit('Compiled score is stale; run python tools/compile_building_call.py')
+    else:
+        OUTPUT.write_bytes(serialized)
     print(json.dumps({k: result[k] for k in ('title', 'bpm', 'key', 'measureCount', 'songSeconds', 'eventCounts', 'sections')}, ensure_ascii=False))
     return result
 
 if __name__ == '__main__':
-    compile_score()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--check', action='store_true', help='Verify generated data without writing files')
+    compile_score(check=parser.parse_args().check)
