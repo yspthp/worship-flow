@@ -2,65 +2,71 @@
 
 日期：2026-09-26（UTC+8）
 Repo：yspthp/worship-flow
-目前工作分支：codex/update-building-call
-遠端預設分支：main（已用 ls-remote --symref 驗證）
-遠端 main：4e67ebf4d96abfa4048dcc1f03906d9b776aeba9，2026-09-26 09:54:10 +08:00
-承接本機搶救 commit：db1cba0ab48027ad310b4b345e455f5915498899
+工作分支：codex/update-building-call
+遠端預設分支：main（已由 ls-remote --symref 確認）
+本次開始時遠端 main：4e67ebf4d96abfa4048dcc1f03906d9b776aeba9，2026-09-26 09:54:10 +08:00
 
 ## 目前進度
-- M1：已核對遠端與本機成果，建立獨立分支並更新交接檔；本次提交前執行全部現有回歸測試，通過後立即推送新分支。
-- M2：尚未開始；待 M1 推送成功後立即核對附件與生成資料。
+- M1、M2、M3 已完成並推送獨立分支；main 未修改。
+- M4 程式與文件已完成；本次提交前執行最後全套文字驗證，通過才 commit／push。實際最終 commit hash 與推送結果請看 git log、git status -sb。
 
 ## 已完成項目
-- 已檢查 git status、git log、遠端分支與差異清單，原工作區乾淨。
-- 前次編譯器、score-data.js、MusicXML/JSON、building-call 回歸測試等成果已包含在 db1cba0，不需從零重建。
-- 已找到使用者提供的新版 MusicXML；M2 必須以此檔為準，而非僅依檔名或已知 141 小節／66 BPM 推定。
-- 已使用單次 git -c http.sslBackend=schannel 成功驗證與 fetch 遠端；保留 SSL 驗證，未修改全域設定。
+- 承接搶救 commit db1cba0ab48027ad310b4b345e455f5915498899，保留既有改動與兩個未核實用途的 MIDI 檔，未刪改他人成果。
+- M1：8e65654ad2eb1b73b832385148b39fb34fd79377。核對 repo 與遠端最新紀錄，建立新分支與 HANDOFF。
+- M2：3421c12d55af1c89cab88e0ad7c39beaa7da69c7。從附件重新複製 XML 並編譯，確認既有 XML 與附件本來相同；新增跨平台換行保護、--check、獨立逐音來源測試。
+- M3：dd0d5a6ac035733501a483aa869f0bc93f52ce94。141 小節司樂建議、下一段入點、收音提示；清楚區分建議與原譜力度；顯示播放來源／力度／鼓件映射說明，切歌時隱藏本曲提示。
+- M4：新版 JSON 直接供三聲部播放，未用舊 AR／Basic Pitch MIDI；補全 3834 組 note-on/off、三聲部靜音、變速、跳轉、暫停／停止測試。修正暫停計時漏乘播放倍率；跳轉恢復仍在延音的鋼琴／弦樂但不重觸已過的鼓擊，note-off 仍對齊原譜結束時點。
+- 已更新前端 cache-busting 標記与 README 重建／測試步驟；無 package.json，此靜態網站以 Python 編譯為資料 build。
 
-## 已改檔案清單
-M1 本次：HANDOFF.md。
-承接搶救內容：app.js、index.html、tests/song-title-regression.cjs、ar-piano.mid、basic_pitch_transcription.mid、public/scores/building-call-66bpm-20260926.json、public/scores/building-call-66bpm-20260926.musicxml、score-data.js、tests/building-call-regression.cjs、tools/compile_building_call.py、HANDOFF.md。
+## 來源與生成資料
+附件：C:/Users/cleme/Documents/Codex/2026-09-26/musicxml-musicxml-partwise-opensheetmusicdisplay-osmd-1-3/outputs/建殿者的呼聲_66bpm_鋼琴弦樂爵士鼓.musicxml
+SHA-256：3e70ed5925ae23d623334d946634b9d3640be16cc279d50d4938cb9c3561af70
+- 141 小節、66 BPM、G 調、4/4、14 段落、512.727272727 秒。
+- 鋼琴／弦樂／鼓音符數：1656／546／1632；GM program 0／50／0，MIDI 聲道 1／2／10。
+- XML 位元組保持原樣供 OSMD。JSON 固定 UTF-8/LF。
+- 原譜無力度記號，固定力度 88／72／78；司樂文字不自動改變播放。
+- 已唯讀核對附件旁 work/build_musicxml.py 与 work/musicxml_to_midi.py。鼓譜 F4=Hi-hat、G5=Ride、C5=大鼓、D5=邊擊、E5/F5=小鼓。舊轉換器將未知 D5/F5 回退為 Hi-hat，本編譯器不沿用此錯誤。
+
+## 變更檔案清單（相對 main，含承接成果）
+- .gitattributes
+- HANDOFF.md
+- README.md
+- app.js
+- index.html
+- score-data.js
+- style.css
+- tools/compile_building_call.py
+- tests/building-call-source-regression.py
+- tests/building-call-regression.cjs
+- tests/song-title-regression.cjs
+- public/scores/building-call-66bpm-20260926.musicxml
+- public/scores/building-call-66bpm-20260926.json
+- ar-piano.mid（僅承接保存）
+- basic_pitch_transcription.mid（僅承接保存）
+
+## 驗證
+- python tools/compile_building_call.py --check
+- python tests/building-call-source-regression.py
+- node tests/building-call-regression.cjs
+- node tests/song-title-regression.cjs
+- node --check app.js
+- node --check score-data.js
+- git diff --check
+- 來源測試涵蓋 3834 個音符與 423 個聲部小節，包括空的鼓組休息小節。
+- 本次只有文字 DOM stub、JSON 與合成器訊息測試；沒有圖片、截圖或視覺驗證。
 
 ## 下一步
-1. M1：全部回歸測試通過後 commit 並 push -u origin codex/update-building-call；用 git log 與 upstream 核實結果。
-2. M2：比對使用者附件雜湊與 repo MusicXML，讀取編譯器並依附件重新生成，核對音符、小節、速度、三聲部。
-3. 補齊司樂提示與播放資料，執行文字／DOM 回歸與必要 build；每個里程碑更新本檔後立即 commit，所有測試通過才 push。
+- M4 全套驗證通過後立即提交與推送 codex/update-building-call，最後核對工作區乾淨且 HEAD 與 upstream 一致。
+- 分支推送不等同 main 部署。後續若需要合併／部署，需使用者另行指示；本次不合併 main 或建立 PR。
 
-## 附件位置
-C:/Users/cleme/Documents/Codex/2026-09-26/musicxml-musicxml-partwise-opensheetmusicdisplay-osmd-1-3/outputs/建殿者的呼聲_66bpm_鋼琴弦樂爵士鼓.musicxml
+## 已知問題／驗證邊界
+- 未實際下載並載入外部 OSMD／SF3 或聆聽瀏覽器合成音訊；純文字測試不代表視覺排版或真實音訊驗收。
+- 鼓組休息小節在附件內是空 measure，仍按 4 拍處理。
+- 兩個既有 MIDI 檔用途未核實，保留但不供本曲播放。
+- Windows Node 在沙箱內曾 EPERM，測試須取得沙箱外執行授權。
+- OpenSSL 憑證庫曾阻擋 push；git -c http.sslBackend=schannel 已成功 fetch 與多次 push，保留憑證驗證，未修改全域設定。
+- 若再遇任何連線錯誤，立即停止，不在同一對話重試；只回覆使用者指定交接句。
+- 禁用截圖／圖片；禁止 force push、reset --hard、刪遠端分支、覆蓋他人 commit。每次 commit 前更新本檔，測試全通過才 push。
 
-## 已知問題與限制
-- 前次 rescue/session2 push 因 OpenSSL 找不到憑證發行者失敗；搶救成果只在本機，但本次新分支承接該 commit。後續 git 網路操作使用 Windows schannel，禁止停用憑證驗證。
-- Node 在沙箱內曾遇 EPERM；測試需經授權在沙箱外執行。
-- 尚未確認兩個既有 MIDI 檔與本歌曲的關係，不擅自刪改。
-- M1 不代表樂曲更新、完整驗收或 main 部署完成。
-- 禁用截圖、圖片或視覺驗證；僅測試、文字、JSON。
-- 不 force push、不 reset --hard、不刪遠端分支、不覆蓋他人 commit。
-- 若再發生連線錯誤，立即停止，不在同一對話重試。
-
-## M1 提交前驗證
-- 兩項現有回歸測試均通過：building-call-regression.cjs、song-title-regression.cjs。
-- 本次 commit 後立即推送獨立分支；推送是否成功以命令結果與 upstream 為準。
-
-## M2 — 附件來源與可重現編譯（完成）
-- M1 已成功推送：8e65654ad2eb1b73b832385148b39fb34fd79377，origin/codex/update-building-call；main 未改動。
-- 已從使用者附件重新複製 MusicXML 並執行編譯；來源本來已相同，重建 JSON 語意亦相同，沒有偽造音符差異。
-- 附件 SHA-256：3e70ed5925ae23d623334d946634b9d3640be16cc279d50d4938cb9c3561af70。
-- 確認 141 小節、66 BPM、G 調、4/4、14 段落、512.727272727 秒、聲部音符數 1656／546／1632。
-- 新增 .gitattributes：原 XML 禁止換行轉換；生成 JSON 固定 LF。
-- 編譯器新增 --check 唯讀重現檢查，輸出固定 UTF-8/LF。
-- 新增 Python 獨立來源回歸測試：固定附件雜湊、逐音音高／起點／時值／譜表比對，共 3834 音符與 423 個聲部小節。
-- 首輪新增測試發現鼓組休息小節是空 measure，已依附件正確處理（未改 XML）。
-- 提交前通過：編譯 --check、Python 來源測試、兩項 Node 回歸測試、兩個 JS 語法檢查、git diff --check。
-- 本次變更：.gitattributes、tools/compile_building_call.py、tests/building-call-source-regression.py、HANDOFF.md；XML/JSON 已重建但與既有追蹤內容一致。
-- 下一步 M3：補齊司樂提示的段落銜接與來源／建議區分，驗證播放資料與實際排程；靜態網站沒有 package.json，不需套件 build，編譯器即資料 build。
-
-## M3 — 司樂提示（完成）
-- M2 已推送：3421c12d55af1c89cab88e0ad7c39beaa7da69c7。
-- 141 小節均新增司樂排練建議，按 14 段落提示下一段入點與全曲收音；明確標示不是原譜力度記號，不暗中改變音符、速度或力度。
-- 顯示播放來源／固定力度／鼓件映射說明，切換其他歌曲時隱藏本曲專用提示；小節總數改從生成資料顯示。
-- 已唯讀核对來源工作目錄的 build_musicxml.py 與 musicxml_to_midi.py：原轉換器未涵蓋 D5/F5，會回退為 Hi-hat；目前編譯器依產生器語意正確對應邊擊／小鼓，不沿用錯誤後備行為。
-- 已重新生成 JSON，更新前端版本標記；逐音來源測試確認音符資料未被提示改動。
-- 全部來源／生成重現／Node 回歸、JS 語法及 diff 檢查通過；新增逐小節三聲部提示、司樂銜接及跨歌曲隱藏測試。
-- 變更：app.js、score-data.js、index.html、style.css、tools/compile_building_call.py、public/scores/building-call-66bpm-20260926.json、tests/building-call-regression.cjs、tests/song-title-regression.cjs、HANDOFF.md。
-- 下一步 M4：補驗新播放資料的 note-off、跳轉與變速；已在程式碼檢查發現暫停時計時漏乘速度，以及跳轉會略過仍在延音的音符，需修正並回歸。
+## M4 最終提交前結果
+上述全部生成一致性、來源逐音、播放排程／提示／切歌回歸、JS 語法及 diff 檢查均通過。M4 已完成，接著提交並推送本分支；HEAD／upstream 是推送結果的核對依據。

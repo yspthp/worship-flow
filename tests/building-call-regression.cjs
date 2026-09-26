@@ -23,8 +23,9 @@ const document = {
   }
 };
 let fetchCount = 0;
+let clockMs = 1000;
 const context = vm.createContext({document, window: {}, console: {...console, error: e => errors.push(e)},
-  performance, setInterval, clearInterval, fetch: async url => {
+  performance: {now: () => clockMs}, setInterval, clearInterval, fetch: async url => {
     fetchCount++;
     return {ok: true, text: async () => fs.readFileSync(path.join(root, url), 'utf8'),
       json: async () => JSON.parse(fs.readFileSync(path.join(root, url), 'utf8'))};
@@ -94,13 +95,18 @@ const run = source => vm.runInContext(source, context);
     positionSec=0;`);
   await run('playAudio()');
   const noteOns = context.messages.filter(m => (m.message[0] & 0xf0) === 0x90);
+  const noteOffs = context.messages.filter(m => (m.message[0] & 0xf0) === 0x80);
   assert.equal(noteOns.length, data.events.length);
+  assert.equal(noteOffs.length, data.events.length);
   assert.deepEqual(context.messages.slice(0,3).map(m => [...m.message]), [[0xc0,0],[0xc1,50],[0xc9,0]]);
   data.events.forEach((event,i) => {
     assert.equal(noteOns[i].message[0], 0x90 | (event.part===2?9:event.part));
     assert.equal(noteOns[i].message[1], event.midi);
     assert.equal(noteOns[i].message[2], event.velocity);
     assert.ok(Math.abs(noteOns[i].options.time - (.12+event.sec)) < 1e-8);
+    assert.equal(noteOffs[i].message[0], 0x80 | (event.part===2?9:event.part));
+    assert.equal(noteOffs[i].message[1], event.midi);
+    assert.ok(Math.abs(noteOffs[i].options.time - (.12+event.sec+event.length)) < 1e-8);
   });
   context.messages.length=0;
   run('trackEnabled[1]=false;');
@@ -113,5 +119,40 @@ const run = source => vm.runInContext(source, context);
   const changedTempoNotes=context.messages.filter(m => (m.message[0] & 0xf0) === 0x90);
   const later=data.events.findIndex(e=>e.sec>0);
   assert.ok(Math.abs(changedTempoNotes[later].options.time-(.12+data.events[later].sec/1.5))<1e-8);
-  console.log('PASS: source hash; 3834 exact notes; 141 measures; 14 sections; guidance; program/channel routing; mute; tempo.');
+  // Seek inside sustained notes, including a section with active percussion.
+  for (const offset of [1, data.measures[24].sec + .2, data.songSeconds]) {
+    context.messages.length=0;
+    run(`positionSec=${offset};`);
+    await run('playAudio()');
+    const expected=data.events.filter(e=>e.sec>=offset||(e.part!==2&&e.sec+e.length>offset));
+    const ons=context.messages.filter(m=>(m.message[0]&0xf0)===0x90);
+    const offs=context.messages.filter(m=>(m.message[0]&0xf0)===0x80);
+    assert.equal(ons.length,expected.length);
+    assert.equal(offs.length,expected.length);
+    expected.forEach((e,i)=>{
+      assert.equal(ons[i].message[1],e.midi);
+      assert.equal(ons[i].message[0],0x90|(e.part===2?9:e.part));
+      assert.ok(Math.abs(ons[i].options.time-(.12+Math.max(0,e.sec-offset)/1.5))<1e-8);
+      assert.ok(Math.abs(offs[i].options.time-(.12+(e.sec+e.length-offset)/1.5))<1e-8);
+      assert.ok(offs[i].options.time>ons[i].options.time);
+    });
+  }
+  for (let muted=0; muted<3; muted++) {
+    context.messages.length=0;
+    run(`positionSec=0;trackEnabled.fill(true);trackEnabled[${muted}]=false;`);
+    await run('playAudio()');
+    const ons=context.messages.filter(m=>(m.message[0]&0xf0)===0x90);
+    assert.equal(ons.length,data.events.length-data.eventCounts[muted]);
+    assert.ok(!ons.some(m=>(m.message[0]&0xf)===(muted===2?9:muted)));
+  }
+  run('trackEnabled.fill(true);positionSec=10;playing=true;playStartedAt=performance.now();');
+  clockMs+=200;
+  await document.querySelector('#play').onclick();
+  assert.ok(Math.abs(run('positionSec')-10.3)<1e-8,'pause must use the current 1.5x playback rate');
+  assert.equal(run('playing'),false);
+  document.querySelector('#stop').onclick();
+  assert.equal(run('positionSec'),0);
+  assert.equal(document.querySelector('#live-measure').textContent,'小節 1');
+  assert.equal(errors.length,0);
+  console.log('PASS: source hash; 3834 note-on/off pairs; 141 measures; 14 sections; guidance; channels; all track mutes; tempo; seek/sustain; pause/stop.');
 })().catch(error => {console.error(error);process.exitCode=1;});
