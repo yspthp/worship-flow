@@ -2,13 +2,13 @@
 
 日期：2026-09-26（UTC+8）
 Repo：yspthp/worship-flow
-工作分支：codex/refine-worship-atmosphere
+發佈來源分支：codex/refine-worship-atmosphere；正式分支：main
 遠端預設分支：main（已由 ls-remote --symref 確認）
 本次開始時遠端 main：4e67ebf4d96abfa4048dcc1f03906d9b776aeba9，2026-09-26 09:54:10 +08:00
 
 ## 目前進度
 - 原 M1–M4 已完成並合併 main：9c6efdd97b3458e4fcb45c792b315b0aa01e91c7；GitHub Pages 線上文字驗收已通過。
-- 本次氣氛文字與混音微調已完成，全部文字測試通過；在 codex/refine-worship-atmosphere 提交推送，尚未合併 main／部署。
+- 氣氛文字、弦樂音量與三行副歌備註已完成；使用者已授權正式發佈。發佈前全套文字測試已通過，本次將 fast-forward 合併並推送 main，觸發既有 GitHub Pages；實際推送與線上驗證結果以本次執行紀錄為準。
 
 ## 已完成項目
 - 承接搶救 commit db1cba0ab48027ad310b4b345e455f5915498899，保留既有改動與兩個未核實用途的 MIDI 檔，未刪改他人成果。
@@ -89,3 +89,12 @@ SHA-256：3e70ed5925ae23d623334d946634b9d3640be16cc279d50d4938cb9c3561af70
 - 變更：app.js、index.html（快取版本）、tests/song-title-regression.cjs、HANDOFF.md。
 - 全部既有生成／來源／播放／切歌回歸與 JS 語法測試通過，新增原文字序、底部位置與切歌隔離驗證。
 - 仍在 codex/refine-worship-atmosphere 提交推送；本次與上一批氣氛／音量調整均尚未合併 main 或部署。
+
+
+## 2026-09-26 — 正式發佈
+- 使用者已明確授權發佈全部氣氛／音量／副歌備註改動。
+- 發佈前 main：9c6efdd97b3458e4fcb45c792b315b0aa01e91c7。
+- 已重新通過編譯一致性、來源逐音、播放、切歌、JS 語法測試。
+- 更新本交接紀錄後提交、推送來源分支，再 fast-forward 合併 main 並推送；不 force push、不查詢 Pages API、沒有額外 deploy remote 或部署腳本。
+- 推送後等待兩分鐘，純文字抓取首頁與 JS，核對三行備註、氣氛要求、提示移除及弦樂 CC7=101；若仍舊版，僅等兩分鐘再查一次。
+- 下次接手先以 git log／remote main 與線上資源核對結果，勿將本段發佈流程紀錄當作線上驗證已成功。
